@@ -1,0 +1,594 @@
+{
+  "createdAt": "2025-06-28T19:24:13.093Z",
+  "updatedAt": "2025-06-28T20:18:56.000Z",
+  "id": "o6crUWYOdJKU4HCS",
+  "name": "Cortes - PREMIUM",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "hour": 0,
+              "minute": 10
+            }
+          ]
+        }
+      },
+      "name": "Every 10 Minutes",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -140,
+        -740
+      ],
+      "id": "cca7808d-1d62-4858-8a36-b8b04b421ffe",
+      "notesInFlow": true,
+      "notes": "Se ejecuta cada 10 minutos"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Configuración ESPECÍFICA para proyecto Cortes en Mac\nconst baseProjectPath = '/data/cortes';\nconst cortesAppPath = '/data/cortes/Cortes';\nconst contextPath = '/data/cortes/cortes-context';\nconst macProjectPath = '/Users/molinesmac/Documents/Cortes';\nconst macContextPath = '/Users/molinesmac/Documents/Cortes/cortes-context';\n\nconst config = {\n  project_path: baseProjectPath,\n  cortes_app_path: cortesAppPath,\n  context_path: contextPath,\n  mac_project_path: macProjectPath,\n  mac_context_path: macContextPath,\n  detected_automatically: true,\n  real_path_found: true,\n  timestamp: new Date().toISOString(),\n  container_id: process.env.HOSTNAME || 'n8n-container',\n  workflow_version: '8.0.0-production-ready'\n};\n\nconsole.log('✅ Cortes project paths configured:', config);\nreturn [{ json: config }];"
+      },
+      "name": "Configure Cortes Project Paths",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -740
+      ],
+      "id": "457111d5-7bab-40f1-974e-2beb6c52d404"
+    },
+    {
+      "parameters": {
+        "command": "mkdir -p {{ $json.context_path }} && echo '✅ Context directory ensured at {{ $json.context_path }}' && ls -la {{ $json.project_path }} 2>/dev/null || echo 'project_path_needs_volume_mapping'"
+      },
+      "name": "Ensure Context Directory",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        300,
+        -740
+      ],
+      "id": "78c082a1-6382-4d9c-8e11-dba5250086ab"
+    },
+    {
+      "parameters": {
+        "command": "echo '🔍 Scanning Cortes project files...' && find {{ $json.project_path }} -maxdepth 8 -type f \\( -name '*.swift' -o -name '*.json' -o -name '*.md' -o -name '*.js' -o -name '*.ts' -o -name '*.jsx' -o -name '*.tsx' -o -name '*.xcodeproj' -o -name '*.xcworkspace' -o -name 'Package.swift' -o -name 'Info.plist' \\) ! -path '*/cortes-context/*' ! -path '*/node_modules/*' ! -path '*/.git/*' ! -path '*/build/*' ! -path '*/DerivedData/*' ! -path '*/Pods/*' ! -path '*/.build/*' ! -path '*/xcuserdata/*' 2>/dev/null | head -150 || echo 'no_project_files_found'"
+      },
+      "name": "Scan Cortes Files",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        520,
+        -1340
+      ],
+      "id": "82fe0c4a-c558-4cb8-a7ad-704567526c27"
+    },
+    {
+      "parameters": {
+        "command": "cd {{ $json.project_path }} 2>/dev/null && echo '📊 Git analysis for Cortes:' && git status --porcelain 2>/dev/null && echo '📈 Recent commits:' && git log --since=\"30 days ago\" --pretty=format:\"%h|%an|%ad|%s\" --date=short --max-count=50 2>/dev/null || echo 'no_git_repository_found'"
+      },
+      "name": "Analyze Git History",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        520,
+        -740
+      ],
+      "id": "ba2cce17-59ef-4d19-ab66-137e8a644b85"
+    },
+    {
+      "parameters": {
+        "command": "cd {{ $json.project_path }} 2>/dev/null && echo '📊 Git statistics analysis:' && git log --since=\"14 days ago\" --numstat --pretty=format:\"%h|%an|%ad\" --date=short --max-count=100 2>/dev/null || echo 'no_git_stats_available'"
+      },
+      "name": "Analyze Git Stats",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        520,
+        -540
+      ],
+      "id": "6c7c3f3f-049b-4960-91d0-a42d47276542"
+    },
+    {
+      "parameters": {
+        "command": "echo '🧪 Scanning Cortes test files...' && find {{ $json.project_path }} -maxdepth 8 -type f \\( -name '*Test*.swift' -o -name '*Tests.swift' -o -name '*.test.js' -o -name '*.spec.js' -o -name '*.test.ts' -o -name '*.spec.ts' -o -name '*UITests*.swift' -o -name '*UnitTests*.swift' \\) ! -path '*/cortes-context/*' ! -path '*/node_modules/*' ! -path '*/.git/*' ! -path '*/build/*' ! -path '*/DerivedData/*' ! -path '*/xcuserdata/*' 2>/dev/null || echo 'no_test_files_found'"
+      },
+      "name": "Analyze Test Coverage",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        520,
+        -140
+      ],
+      "id": "f3f13e95-13ef-486f-b1b1-e0bb5bbf6b86"
+    },
+    {
+      "parameters": {
+        "command": "echo '🎨 Analyzing Cortes assets...' && find {{ $json.project_path }} -maxdepth 8 -type f \\( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.svg' -o -name '*.gif' -o -name '*.pdf' -o -name '*.mp4' -o -name '*.mov' -o -name '*.heic' -o -name '*.webp' \\) ! -path '*/cortes-context/*' ! -path '*/node_modules/*' ! -path '*/.git/*' ! -path '*/build/*' ! -path '*/DerivedData/*' ! -path '*/xcuserdata/*' -exec du -sh {} \\; 2>/dev/null | head -100 || echo 'no_assets_found'"
+      },
+      "name": "Analyze Assets Performance",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        520,
+        60
+      ],
+      "id": "9af74a9e-fc0e-4f05-ae94-c4f5ef57b904"
+    },
+    {
+      "parameters": {
+        "command": "echo '📦 Analyzing Package.swift dependencies...' && find {{ $json.project_path }} -maxdepth 5 -name 'Package.swift' -exec echo 'Found Package.swift: {}' \\; -exec cat {} \\; 2>/dev/null || echo 'no_package_swift_found'"
+      },
+      "name": "Analyze Swift Dependencies",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        520,
+        -1140
+      ],
+      "id": "3a2d1c6a-ca3b-4cea-bdde-59a9324d3a87"
+    },
+    {
+      "parameters": {
+        "command": "echo '🔒 Analyzing Package.resolved...' && find {{ $json.project_path }} -maxdepth 5 -name 'Package.resolved' -exec echo 'Found Package.resolved: {}' \\; -exec cat {} \\; 2>/dev/null || echo 'no_package_resolved_found'"
+      },
+      "name": "Analyze Swift Package Lock",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        520,
+        -940
+      ],
+      "id": "ab32cece-67a7-4511-ab5a-3ce2fed1b376"
+    },
+    {
+      "parameters": {
+        "command": "echo '📄 Analyzing package.json dependencies...' && find {{ $json.project_path }} -maxdepth 5 -name 'package.json' -exec echo 'Found package.json: {}' \\; -exec cat {} \\; 2>/dev/null || echo 'no_package_json_found'"
+      },
+      "name": "Analyze NPM Dependencies",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        520,
+        -340
+      ],
+      "id": "ddc0f382-b05a-41af-b49e-cc7a8fc5e131"
+    },
+    {
+      "parameters": {
+        "functionCode": "// ANÁLISIS ROBUSTO DE ESTRUCTURA DEL PROYECTO CORTES\nconst projectFiles = items[0]?.json?.stdout?.trim() || '';\nconst pathConfig = items[1]?.json || {};\n\nconst analysis = {\n  timestamp: new Date().toISOString(),\n  project_name: 'Cortes',\n  project_path: pathConfig.project_path || '/data/cortes',\n  cortes_app_path: pathConfig.cortes_app_path || '/data/cortes/Cortes',\n  project_detected: pathConfig.detected_automatically || false,\n  scan_successful: !projectFiles.includes('no_project_files_found') && !projectFiles.includes('project_path_needs_volume_mapping'),\n  files_found: projectFiles !== 'no_project_files_found' && projectFiles.length > 0,\n  total_files: 0,\n  categories: {\n    swift_files: 0,\n    js_files: 0,\n    config_files: 0,\n    documentation: 0,\n    xcode_projects: 0,\n    info_plists: 0\n  },\n  cortes_structure: {\n    main_app_files: [],\n    view_files: [],\n    model_files: [],\n    config_files: [],\n    documentation_files: []\n  },\n  project_type_detected: 'unknown',\n  cortes_specific_insights: {\n    ios_project: false,\n    swiftui_detected: false,\n    package_manager_detected: false,\n    documentation_quality: 'unknown'\n  }\n};\n\n// Parse files robustly\nif (analysis.scan_successful && analysis.files_found) {\n  const fileList = projectFiles.split('\\n')\n    .filter(f => f.length > 0 && !f.includes('Scanning Cortes project files'))\n    .map(f => f.trim())\n    .filter(f => f.length > 0);\n  \n  analysis.total_files = fileList.length;\n  \n  // Count by categories\n  analysis.categories.swift_files = fileList.filter(f => f.endsWith('.swift')).length;\n  analysis.categories.js_files = fileList.filter(f => f.match(/\\.(js|jsx|ts|tsx)$/)).length;\n  analysis.categories.config_files = fileList.filter(f => f.match(/(package\\.json|Package\\.swift|Package\\.resolved)/)).length;\n  analysis.categories.documentation = fileList.filter(f => f.endsWith('.md')).length;\n  analysis.categories.xcode_projects = fileList.filter(f => f.match(/\\.(xcodeproj|xcworkspace)$/)).length;\n  analysis.categories.info_plists = fileList.filter(f => f.includes('Info.plist')).length;\n  \n  // Classify Cortes-specific files\n  analysis.cortes_structure.main_app_files = fileList.filter(f => \n    f.includes('/CortesApp') || f.includes('CortesApp.swift') || f.includes('main.swift')\n  );\n  analysis.cortes_structure.view_files = fileList.filter(f => \n    f.includes('View.swift') || f.includes('/Views/') || f.includes('ViewController')\n  );\n  analysis.cortes_structure.model_files = fileList.filter(f => \n    f.includes('Model.swift') || f.includes('/Models/') || f.includes('Entity')\n  );\n  analysis.cortes_structure.config_files = fileList.filter(f => \n    f.match(/(package\\.json|Package\\.swift|Package\\.resolved|Info\\.plist)/)\n  );\n  analysis.cortes_structure.documentation_files = fileList.filter(f => \n    f.includes('/Documentation/') || f.includes('/docs/') || f.endsWith('.md')\n  );\n  \n  // Detect project type and Cortes-specific insights\n  if (analysis.categories.swift_files > 0 && analysis.categories.xcode_projects > 0) {\n    analysis.project_type_detected = 'iOS_Native_Swift_Cortes';\n    analysis.cortes_specific_insights.ios_project = true;\n  } else if (analysis.categories.swift_files > 0) {\n    analysis.project_type_detected = 'Swift_Package_Cortes';\n    analysis.cortes_specific_insights.package_manager_detected = true;\n  } else if (analysis.categories.js_files > 0) {\n    analysis.project_type_detected = 'Web_Component_Cortes';\n  } else if (analysis.total_files > 0) {\n    analysis.project_type_detected = 'Mixed_Cortes_Project';\n  }\n  \n  // SwiftUI detection\n  const swiftUIIndicators = fileList.filter(f => \n    f.includes('SwiftUI') || f.includes('ContentView') || f.includes('@State') ||\n    f.includes('View.swift') && analysis.categories.swift_files > 5\n  );\n  analysis.cortes_specific_insights.swiftui_detected = swiftUIIndicators.length > 0;\n  \n  // Documentation quality assessment\n  if (analysis.categories.documentation > 5) {\n    analysis.cortes_specific_insights.documentation_quality = 'excellent';\n  } else if (analysis.categories.documentation > 2) {\n    analysis.cortes_specific_insights.documentation_quality = 'good';\n  } else if (analysis.categories.documentation > 0) {\n    analysis.cortes_specific_insights.documentation_quality = 'basic';\n  } else {\n    analysis.cortes_specific_insights.documentation_quality = 'minimal';\n  }\n}\n\nconsole.log('✅ Cortes project analysis completed:', {\n  files_found: analysis.files_found,\n  total_files: analysis.total_files,\n  project_type: analysis.project_type_detected,\n  ios_project: analysis.cortes_specific_insights.ios_project\n});\n\nreturn [{ json: analysis }];"
+      },
+      "name": "Analyze Cortes Project Structure",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        740,
+        -1340
+      ],
+      "id": "cb5b12a6-b7c2-4e6d-b945-907875581d2e"
+    },
+    {
+      "parameters": {
+        "functionCode": "// ANÁLISIS ROBUSTO DE GIT INTELLIGENCE PARA CORTES\nconst gitHistory = items[0]?.json?.stdout || 'no_git_repository_found';\nconst gitStats = items[1]?.json?.stdout || 'no_git_stats_available';\n\nconst gitIntelligence = {\n  timestamp: new Date().toISOString(),\n  project_name: 'Cortes',\n  git_available: !gitHistory.includes('no_git_repository_found'),\n  git_status_clean: gitHistory.includes('Git analysis for Cortes:'),\n  development_velocity: {\n    commits_30_days: 0,\n    commits_14_days: 0,\n    active_developers: [],\n    commit_frequency: 'unknown',\n    development_pace: 'unknown'\n  },\n  commit_patterns: {\n    common_messages: [],\n    commit_types: {},\n    recent_activity: false,\n    cortes_specific_commits: []\n  },\n  hot_spots: {\n    most_changed_files: [],\n    refactor_candidates: [],\n    cortes_core_changes: []\n  },\n  cortes_development_insights: {\n    core_feature_development: 'unknown',\n    ui_development_activity: 'unknown',\n    backend_development_activity: 'unknown',\n    testing_development_activity: 'unknown'\n  },\n  insights: {\n    development_health: 'unknown',\n    code_stability: 'unknown',\n    team_collaboration: 'unknown',\n    project_momentum: 'unknown'\n  }\n};\n\nif (gitIntelligence.git_available) {\n  // Parse Git history more robustly\n  const historyLines = gitHistory.split('\\n')\n    .filter(line => line.includes('|') && line.match(/^[a-f0-9]+\\|/));\n  \n  gitIntelligence.development_velocity.commits_30_days = historyLines.length;\n  gitIntelligence.commit_patterns.recent_activity = historyLines.length > 0;\n  \n  if (historyLines.length > 0) {\n    // Parse commit data\n    const commitData = historyLines.map(line => {\n      const parts = line.split('|');\n      return {\n        hash: parts[0]?.trim(),\n        author: parts[1]?.trim(),\n        date: parts[2]?.trim(),\n        message: parts.slice(3).join('|').trim()\n      };\n    }).filter(commit => commit.hash && commit.author);\n    \n    // Analyze developers\n    const developers = [...new Set(commitData.map(c => c.author))];\n    gitIntelligence.development_velocity.active_developers = developers;\n    \n    // Analyze Cortes-specific commit patterns\n    const cortesCommits = commitData.filter(c => \n      c.message.toLowerCase().includes('cortes') ||\n      c.message.toLowerCase().includes('client') ||\n      c.message.toLowerCase().includes('session') ||\n      c.message.toLowerCase().includes('analytics')\n    );\n    gitIntelligence.commit_patterns.cortes_specific_commits = cortesCommits.slice(0, 10);\n    \n    // Analyze commit patterns\n    const messages = commitData.map(c => c.message.toLowerCase());\n    const commonWords = {};\n    messages.forEach(msg => {\n      const words = msg.split(' ').filter(w => w.length > 3 && !['the', 'and', 'for', 'with'].includes(w));\n      words.forEach(word => {\n        commonWords[word] = (commonWords[word] || 0) + 1;\n      });\n    });\n    \n    gitIntelligence.commit_patterns.common_messages = Object.entries(commonWords)\n      .sort(([,a], [,b]) => b - a)\n      .slice(0, 15)\n      .map(([word, count]) => ({ word, count }));\n    \n    // Detect commit types for Cortes\n    const commitTypes = {\n      feature: messages.filter(m => m.includes('feat') || m.includes('add') || m.includes('implement') || m.includes('new')).length,\n      fix: messages.filter(m => m.includes('fix') || m.includes('bug') || m.includes('resolve') || m.includes('patch')).length,\n      refactor: messages.filter(m => m.includes('refactor') || m.includes('clean') || m.includes('optimize')).length,\n      test: messages.filter(m => m.includes('test') || m.includes('spec') || m.includes('coverage')).length,\n      docs: messages.filter(m => m.includes('doc') || m.includes('readme') || m.includes('comment')).length,\n      ui: messages.filter(m => m.includes('ui') || m.includes('view') || m.includes('design') || m.includes('style')).length,\n      backend: messages.filter(m => m.includes('api') || m.includes('server') || m.includes('database') || m.includes('core')).length\n    };\n    \n    gitIntelligence.commit_patterns.commit_types = commitTypes;\n    \n    // Cortes-specific development insights\n    gitIntelligence.cortes_development_insights = {\n      core_feature_development: commitTypes.feature > 5 ? 'high' : commitTypes.feature > 2 ? 'moderate' : 'low',\n      ui_development_activity: commitTypes.ui > 3 ? 'high' : commitTypes.ui > 1 ? 'moderate' : 'low',\n      backend_development_activity: commitTypes.backend > 3 ? 'high' : commitTypes.backend > 1 ? 'moderate' : 'low',\n      testing_development_activity: commitTypes.test > 2 ? 'good' : commitTypes.test > 0 ? 'minimal' : 'none'\n    };\n    \n    // Calculate last 14 days for more recent activity\n    const fourteenDaysAgo = new Date();\n    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);\n    \n    const last14Days = commitData.filter(c => {\n      const commitDate = new Date(c.date);\n      return commitDate >= fourteenDaysAgo;\n    });\n    \n    gitIntelligence.development_velocity.commits_14_days = last14Days.length;\n    \n    // Determine commit frequency and pace\n    if (last14Days.length > 20) {\n      gitIntelligence.development_velocity.commit_frequency = 'very_high';\n      gitIntelligence.development_velocity.development_pace = 'blazing';\n    } else if (last14Days.length > 10) {\n      gitIntelligence.development_velocity.commit_frequency = 'high';\n      gitIntelligence.development_velocity.development_pace = 'fast';\n    } else if (last14Days.length > 5) {\n      gitIntelligence.development_velocity.commit_frequency = 'moderate';\n      gitIntelligence.development_velocity.development_pace = 'steady';\n    } else if (last14Days.length > 0) {\n      gitIntelligence.development_velocity.commit_frequency = 'low';\n      gitIntelligence.development_velocity.development_pace = 'slow';\n    } else {\n      gitIntelligence.development_velocity.commit_frequency = 'inactive';\n      gitIntelligence.development_velocity.development_pace = 'stagnant';\n    }\n  }\n  \n  // Analyze git stats for hot spots\n  if (!gitStats.includes('no_git_stats_available')) {\n    const statsLines = gitStats.split('\\n')\n      .filter(line => line.length > 0 && !line.includes('Git statistics analysis:'));\n    \n    const fileChanges = {};\n    let currentCommit = null;\n    \n    statsLines.forEach(line => {\n      if (line.includes('|') && !line.match(/^\\d+\\s+\\d+\\s+/)) {\n        currentCommit = line.split('|')[0]?.trim();\n      } else if (line.match(/^\\d+\\s+\\d+\\s+/) && currentCommit) {\n        const parts = line.trim().split(/\\s+/);\n        if (parts.length >= 3) {\n          const added = parseInt(parts[0]) || 0;\n          const removed = parseInt(parts[1]) || 0;\n          const fileName = parts.slice(2).join(' ');\n          \n          if (!fileChanges[fileName]) {\n            fileChanges[fileName] = { changes: 0, added: 0, removed: 0 };\n          }\n          \n          fileChanges[fileName].changes++;\n          fileChanges[fileName].added += added;\n          fileChanges[fileName].removed += removed;\n        }\n      }\n    });\n    \n    // Identify hot spots\n    const hotSpots = Object.entries(fileChanges)\n      .sort(([,a], [,b]) => b.changes - a.changes)\n      .slice(0, 15)\n      .map(([file, stats]) => ({ file, ...stats }));\n    \n    gitIntelligence.hot_spots.most_changed_files = hotSpots;\n    \n    // Identify Cortes core changes\n    const cortesCore = hotSpots.filter(item => \n      item.file.includes('Cortes') || \n      item.file.includes('Client') || \n      item.file.includes('Session') ||\n      item.file.includes('Analytics')\n    );\n    gitIntelligence.hot_spots.cortes_core_changes = cortesCore;\n    \n    // Identify refactor candidates\n    const refactorCandidates = hotSpots\n      .filter(item => item.changes > 5 && (item.added + item.removed) > 100)\n      .map(item => ({\n        file: item.file,\n        churn_score: item.changes * (item.added + item.removed),\n        reason: 'High change frequency with significant modifications',\n        priority: item.file.includes('Cortes') ? 'high' : 'medium'\n      }));\n    \n    gitIntelligence.hot_spots.refactor_candidates = refactorCandidates;\n  }\n  \n  // Generate enhanced insights\n  gitIntelligence.insights = {\n    development_health: gitIntelligence.development_velocity.commit_frequency,\n    team_size: gitIntelligence.development_velocity.active_developers.length,\n    code_stability: gitIntelligence.hot_spots.refactor_candidates.length < 3 ? 'stable' : 'needs_attention',\n    project_momentum: gitIntelligence.development_velocity.commits_14_days > 0 ? 'active' : 'stagnant',\n    team_collaboration: gitIntelligence.development_velocity.active_developers.length > 1 ? 'collaborative' : 'solo'\n  };\n} else {\n  gitIntelligence.insights = {\n    development_health: 'no_git_repository',\n    code_stability: 'unknown',\n    team_size: 0,\n    project_momentum: 'unknown',\n    team_collaboration: 'unknown'\n  };\n}\n\nconsole.log('✅ Cortes Git intelligence completed:', {\n  git_available: gitIntelligence.git_available,\n  commits_30_days: gitIntelligence.development_velocity.commits_30_days,\n  development_pace: gitIntelligence.development_velocity.development_pace\n});\n\nreturn [{ json: gitIntelligence }];"
+      },
+      "name": "Analyze Cortes Git Intelligence",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        740,
+        -540
+      ],
+      "id": "a88d33ae-d263-4148-baf5-06260258a3d6"
+    },
+    {
+      "parameters": {
+        "functionCode": "// ANÁLISIS ROBUSTO DE TESTING INTELLIGENCE PARA CORTES\nconst testFiles = items[0]?.json?.stdout || 'no_test_files_found';\n\nconst testingIntelligence = {\n  timestamp: new Date().toISOString(),\n  project_name: 'Cortes',\n  scan_successful: !testFiles.includes('no_test_files_found'),\n  tests_found: testFiles !== 'no_test_files_found' && testFiles.length > 0,\n  test_coverage: {\n    total_test_files: 0,\n    swift_test_files: 0,\n    js_test_files: 0,\n    ui_test_files: 0,\n    unit_test_files: 0\n  },\n  cortes_testing_patterns: {\n    client_tests: [],\n    session_tests: [],\n    analytics_tests: [],\n    ui_tests: [],\n    integration_tests: []\n  },\n  testing_frameworks: {\n    swift_testing_framework: 'XCTest',\n    js_testing_framework: 'unknown',\n    ui_testing_framework: 'XCUITest'\n  },\n  cortes_test_insights: {\n    client_management_coverage: 'unknown',\n    session_management_coverage: 'unknown',\n    analytics_coverage: 'unknown',\n    ui_coverage: 'unknown',\n    monetization_coverage: 'unknown'\n  },\n  insights: {\n    test_coverage_level: 'none',\n    testing_maturity: 'none',\n    recommendation: 'Initialize comprehensive Cortes testing setup',\n    deployment_confidence: 'low'\n  }\n};\n\nif (testingIntelligence.scan_successful && testingIntelligence.tests_found) {\n  const testFileList = testFiles.split('\\n')\n    .filter(f => f.length > 0 && !f.includes('Scanning Cortes test files'))\n    .map(f => f.trim())\n    .filter(f => f.length > 0);\n  \n  testingIntelligence.test_coverage.total_test_files = testFileList.length;\n  testingIntelligence.test_coverage.swift_test_files = testFileList.filter(f => \n    f.endsWith('.swift') && (f.includes('Test') || f.includes('Tests'))\n  ).length;\n  testingIntelligence.test_coverage.js_test_files = testFileList.filter(f => \n    f.match(/\\.(test|spec)\\.(js|ts|jsx|tsx)$/)\n  ).length;\n  testingIntelligence.test_coverage.ui_test_files = testFileList.filter(f => \n    f.includes('UITest') || f.includes('UITests')\n  ).length;\n  testingIntelligence.test_coverage.unit_test_files = testFileList.filter(f => \n    f.includes('UnitTest') || (f.includes('Test') && !f.includes('UITest'))\n  ).length;\n  \n  // Analyze Cortes-specific test patterns\n  testingIntelligence.cortes_testing_patterns = {\n    client_tests: testFileList.filter(f => \n      f.toLowerCase().includes('client') && (f.includes('Test') || f.includes('Tests'))\n    ),\n    session_tests: testFileList.filter(f => \n      f.toLowerCase().includes('session') && (f.includes('Test') || f.includes('Tests'))\n    ),\n    analytics_tests: testFileList.filter(f => \n      f.toLowerCase().includes('analytics') && (f.includes('Test') || f.includes('Tests'))\n    ),\n    ui_tests: testFileList.filter(f => \n      f.includes('UITest') || (f.includes('View') && f.includes('Test'))\n    ),\n    integration_tests: testFileList.filter(f => \n      f.toLowerCase().includes('integration') && (f.includes('Test') || f.includes('Tests'))\n    )\n  };\n  \n  // Assess Cortes-specific test coverage\n  testingIntelligence.cortes_test_insights = {\n    client_management_coverage: testingIntelligence.cortes_testing_patterns.client_tests.length > 3 ? 'good' : \n                               testingIntelligence.cortes_testing_patterns.client_tests.length > 0 ? 'basic' : 'none',\n    session_management_coverage: testingIntelligence.cortes_testing_patterns.session_tests.length > 3 ? 'good' : \n                                testingIntelligence.cortes_testing_patterns.session_tests.length > 0 ? 'basic' : 'none',\n    analytics_coverage: testingIntelligence.cortes_testing_patterns.analytics_tests.length > 2 ? 'good' : \n                       testingIntelligence.cortes_testing_patterns.analytics_tests.length > 0 ? 'basic' : 'none',\n    ui_coverage: testingIntelligence.cortes_testing_patterns.ui_tests.length > 5 ? 'good' : \n                testingIntelligence.cortes_testing_patterns.ui_tests.length > 2 ? 'basic' : 'none',\n    monetization_coverage: testFileList.filter(f => \n      f.toLowerCase().includes('premium') || f.toLowerCase().includes('subscription') || f.toLowerCase().includes('payment')\n    ).length > 0 ? 'basic' : 'none'\n  };\n  \n  // Determine test coverage level and maturity for Cortes\n  const totalTests = testFileList.length;\n  const coreTestsCount = testingIntelligence.cortes_testing_patterns.client_tests.length + \n                        testingIntelligence.cortes_testing_patterns.session_tests.length + \n                        testingIntelligence.cortes_testing_patterns.analytics_tests.length;\n  \n  if (totalTests > 25 && coreTestsCount > 8) {\n    testingIntelligence.insights.test_coverage_level = 'excellent';\n    testingIntelligence.insights.testing_maturity = 'enterprise';\n    testingIntelligence.insights.recommendation = 'Maintain excellent test coverage and consider performance testing';\n    testingIntelligence.insights.deployment_confidence = 'very_high';\n  } else if (totalTests > 15 && coreTestsCount > 5) {\n    testingIntelligence.insights.test_coverage_level = 'good';\n    testingIntelligence.insights.testing_maturity = 'mature';\n    testingIntelligence.insights.recommendation = 'Expand testing for edge cases and premium features';\n    testingIntelligence.insights.deployment_confidence = 'high';\n  } else if (totalTests > 8 && coreTestsCount > 2) {\n    testingIntelligence.insights.test_coverage_level = 'moderate';\n    testingIntelligence.insights.testing_maturity = 'developing';\n    testingIntelligence.insights.recommendation = 'Focus on core Cortes functionality testing';\n    testingIntelligence.insights.deployment_confidence = 'moderate';\n  } else if (totalTests > 3) {\n    testingIntelligence.insights.test_coverage_level = 'basic';\n    testingIntelligence.insights.testing_maturity = 'minimal';\n    testingIntelligence.insights.recommendation = 'Prioritize client and session management tests';\n    testingIntelligence.insights.deployment_confidence = 'low';\n  } else if (totalTests > 0) {\n    testingIntelligence.insights.test_coverage_level = 'minimal';\n    testingIntelligence.insights.testing_maturity = 'basic';\n    testingIntelligence.insights.recommendation = 'Implement basic test suite for core Cortes features';\n    testingIntelligence.insights.deployment_confidence = 'very_low';\n  }\n  \n  // Detect testing frameworks\n  const hasJestPattern = testFileList.some(f => f.includes('.test.') || f.includes('.spec.'));\n  if (hasJestPattern) {\n    testingIntelligence.testing_frameworks.js_testing_framework = 'Jest/Testing Library';\n  }\n} else {\n  testingIntelligence.insights = {\n    test_coverage_level: 'none',\n    testing_maturity: 'none',\n    recommendation: 'CRITICAL: Implement comprehensive test suite for Cortes before production deployment',\n    deployment_confidence: 'not_recommended'\n  };\n}\n\nconsole.log('✅ Cortes testing intelligence completed:', {\n  tests_found: testingIntelligence.tests_found,\n  total_test_files: testingIntelligence.test_coverage.total_test_files,\n  deployment_confidence: testingIntelligence.insights.deployment_confidence\n});\n\nreturn [{ json: testingIntelligence }];"
+      },
+      "name": "Analyze Cortes Testing Intelligence",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        740,
+        -140
+      ],
+      "id": "325b3f2d-9f26-43a8-8524-1b40aa378741"
+    },
+    {
+      "parameters": {
+        "functionCode": "// ANÁLISIS ROBUSTO DE PERFORMANCE INTELLIGENCE PARA CORTES\nconst assetData = items[0]?.json?.stdout || 'no_assets_found';\n\nconst performanceIntelligence = {\n  timestamp: new Date().toISOString(),\n  project_name: 'Cortes',\n  scan_successful: !assetData.includes('no_assets_found'),\n  assets_found: assetData !== 'no_assets_found' && assetData.length > 0,\n  asset_analysis: {\n    total_assets: 0,\n    large_assets: [],\n    total_asset_size_kb: 0,\n    asset_types: {},\n    cortes_specific_assets: {\n      app_icons: [],\n      ui_assets: [],\n      profile_images: [],\n      marketing_assets: []\n    },\n    optimization_opportunities: []\n  },\n  cortes_performance_metrics: {\n    app_store_readiness: 'unknown',\n    ios_optimization_score: 100,\n    user_experience_score: 100,\n    monetization_impact: 'minimal'\n  },\n  optimization_recommendations: {\n    immediate_actions: [],\n    priority_focus: 'code_optimization',\n    estimated_savings: '0MB',\n    cortes_specific_optimizations: []\n  }\n};\n\nif (performanceIntelligence.scan_successful && performanceIntelligence.assets_found) {\n  const assetLines = assetData.split('\\n')\n    .filter(line => line.length > 0 && !line.includes('Analyzing Cortes assets') && line.includes('/'))\n    .map(line => line.trim());\n  \n  performanceIntelligence.asset_analysis.total_assets = assetLines.length;\n  \n  const assets = [];\n  let totalSizeKB = 0;\n  const assetTypes = {};\n  \n  assetLines.forEach(line => {\n    // Parse du output: \"1.2M  /path/to/file.png\"\n    const match = line.match(/^([0-9.]+)([KMGT]?)\\s+(.+)$/);\n    if (match) {\n      const [, sizeStr, unit, filePath] = match;\n      const size = parseFloat(sizeStr);\n      \n      // Convert to KB\n      let sizeKB = size;\n      switch (unit.toUpperCase()) {\n        case 'M': sizeKB = size * 1024; break;\n        case 'G': sizeKB = size * 1024 * 1024; break;\n        case 'T': sizeKB = size * 1024 * 1024 * 1024; break;\n        case 'K': sizeKB = size; break;\n        default: sizeKB = size / 1024; break; // Assume bytes\n      }\n      \n      const fileName = filePath.split('/').pop();\n      const extension = fileName?.split('.').pop()?.toLowerCase() || 'unknown';\n      \n      // Count by type\n      assetTypes[extension] = (assetTypes[extension] || 0) + 1;\n      \n      const assetInfo = {\n        path: filePath,\n        name: fileName,\n        extension,\n        sizeKB: Math.round(sizeKB * 100) / 100,\n        sizeDisplay: sizeStr + unit,\n        category: ['png', 'jpg', 'jpeg', 'heic', 'webp'].includes(extension) ? 'image' : \n                 ['mp4', 'mov'].includes(extension) ? 'video' : \n                 ['pdf'].includes(extension) ? 'document' : 'other'\n      };\n      \n      assets.push(assetInfo);\n      totalSizeKB += sizeKB;\n    }\n  });\n  \n  performanceIntelligence.asset_analysis.total_asset_size_kb = Math.round(totalSizeKB * 100) / 100;\n  performanceIntelligence.asset_analysis.asset_types = assetTypes;\n  \n  // Classify Cortes-specific assets\n  performanceIntelligence.asset_analysis.cortes_specific_assets = {\n    app_icons: assets.filter(a => \n      a.name.toLowerCase().includes('icon') || \n      a.name.toLowerCase().includes('logo') ||\n      a.path.includes('AppIcon')\n    ),\n    ui_assets: assets.filter(a => \n      a.name.toLowerCase().includes('button') ||\n      a.name.toLowerCase().includes('background') ||\n      a.name.toLowerCase().includes('ui')\n    ),\n    profile_images: assets.filter(a => \n      a.name.toLowerCase().includes('profile') ||\n      a.name.toLowerCase().includes('avatar') ||\n      a.name.toLowerCase().includes('client')\n    ),\n    marketing_assets: assets.filter(a => \n      a.name.toLowerCase().includes('screenshot') ||\n      a.name.toLowerCase().includes('promo') ||\n      a.name.toLowerCase().includes('marketing')\n    )\n  };\n  \n  // Identify large assets (> 500KB for iOS)\n  const largeAssets = assets\n    .filter(asset => asset.sizeKB > 500)\n    .sort((a, b) => b.sizeKB - a.sizeKB)\n    .slice(0, 20);\n  \n  performanceIntelligence.asset_analysis.large_assets = largeAssets;\n  \n  // Calculate total size in MB\n  const totalSizeMB = totalSizeKB / 1024;\n  \n  // Generate Cortes-specific optimization opportunities\n  const optimizations = [];\n  const cortesOptimizations = [];\n  let potentialSavings = 0;\n  \n  if (largeAssets.length > 0) {\n    const largeSavings = largeAssets.reduce((sum, asset) => sum + (asset.sizeKB * 0.5), 0) / 1024; // 50% savings estimate\n    optimizations.push({\n      type: 'asset_compression',\n      count: largeAssets.length,\n      description: `Optimize ${largeAssets.length} large assets for iOS`,\n      potential_savings_mb: Math.round(largeSavings * 100) / 100\n    });\n    potentialSavings += largeSavings;\n    \n    cortesOptimizations.push('Compress large assets to improve App Store download speed');\n  }\n  \n  if (totalSizeMB > 100) {\n    optimizations.push({\n      type: 'app_store_optimization',\n      description: 'Reduce total app size for better App Store metrics',\n      potential_savings_mb: Math.round((totalSizeMB * 0.4) * 100) / 100\n    });\n    cortesOptimizations.push('Implement App Thinning for different device types');\n  }\n  \n  if (assetTypes['png'] > 15) {\n    optimizations.push({\n      type: 'format_optimization',\n      description: 'Convert PNG images to HEIC for iOS optimization',\n      potential_savings_mb: Math.round((totalSizeMB * 0.4) * 100) / 100\n    });\n    cortesOptimizations.push('Use HEIC format for photos and WebP for graphics');\n  }\n  \n  // Cortes-specific performance considerations\n  if (performanceIntelligence.asset_analysis.cortes_specific_assets.profile_images.length > 5) {\n    cortesOptimizations.push('Implement dynamic image loading for client profiles');\n  }\n  \n  if (performanceIntelligence.asset_analysis.cortes_specific_assets.marketing_assets.length > 10) {\n    cortesOptimizations.push('Optimize marketing assets for faster onboarding');\n  }\n  \n  performanceIntelligence.asset_analysis.optimization_opportunities = optimizations;\n  performanceIntelligence.optimization_recommendations.estimated_savings = \n    `${Math.round(potentialSavings * 100) / 100}MB`;\n  performanceIntelligence.optimization_recommendations.cortes_specific_optimizations = cortesOptimizations;\n  \n  // Calculate Cortes-specific performance scores\n  let iosScore = 100;\n  let uxScore = 100;\n  \n  // iOS App Store optimization score\n  if (totalSizeMB > 200) iosScore -= 50;\n  else if (totalSizeMB > 150) iosScore -= 35;\n  else if (totalSizeMB > 100) iosScore -= 25;\n  else if (totalSizeMB > 50) iosScore -= 15;\n  \n  if (largeAssets.length > 15) iosScore -= 25;\n  else if (largeAssets.length > 10) iosScore -= 20;\n  else if (largeAssets.length > 5) iosScore -= 15;\n  \n  // UX score based on asset optimization\n  if (largeAssets.length > 10 || totalSizeMB > 100) uxScore -= 30;\n  else if (largeAssets.length > 5 || totalSizeMB > 50) uxScore -= 20;\n  else if (largeAssets.length > 2 || totalSizeMB > 25) uxScore -= 10;\n  \n  performanceIntelligence.cortes_performance_metrics = {\n    app_store_readiness: iosScore > 85 ? 'excellent' : iosScore > 70 ? 'good' : iosScore > 50 ? 'fair' : 'needs_work',\n    ios_optimization_score: Math.max(iosScore, 0),\n    user_experience_score: Math.max(uxScore, 0),\n    monetization_impact: totalSizeMB > 100 ? 'high_negative' : totalSizeMB > 50 ? 'moderate_negative' : 'minimal'\n  };\n  \n  // Set optimization priorities for Cortes\n  if (largeAssets.length > 8 || totalSizeMB > 100) {\n    performanceIntelligence.optimization_recommendations.priority_focus = 'critical_asset_optimization';\n    performanceIntelligence.optimization_recommendations.immediate_actions = [\n      'CRITICAL: Optimize assets for App Store submission',\n      'Implement progressive image loading',\n      'Use appropriate formats (HEIC/WebP)',\n      'Consider lazy loading for non-essential assets'\n    ];\n  } else if (largeAssets.length > 3 || totalSizeMB > 50) {\n    performanceIntelligence.optimization_recommendations.priority_focus = 'moderate_asset_optimization';\n    performanceIntelligence.optimization_recommendations.immediate_actions = [\n      'Optimize large assets for better UX',\n      'Review asset usage patterns',\n      'Implement smart caching strategies'\n    ];\n  } else {\n    performanceIntelligence.optimization_recommendations.priority_focus = 'fine_tuning';\n    performanceIntelligence.optimization_recommendations.immediate_actions = [\n      'Assets are well-optimized for Cortes',\n      'Focus on code bundle optimization',\n      'Monitor performance metrics in production'\n    ];\n  }\n} else {\n  // No assets found - this could be good or bad\n  performanceIntelligence.cortes_performance_metrics = {\n    app_store_readiness: 'minimal_assets_detected',\n    ios_optimization_score: 95,\n    user_experience_score: 80,\n    monetization_impact: 'neutral'\n  };\n  \n  performanceIntelligence.optimization_recommendations = {\n    immediate_actions: [\n      'No significant assets detected - verify asset scanning',\n      'Ensure all Cortes UI assets are properly located',\n      'Focus on code optimization and memory management'\n    ],\n    priority_focus: 'asset_verification',\n    estimated_savings: '0MB',\n    cortes_specific_optimizations: [\n      'Verify App Icons and launch screens are present',\n      'Ensure marketing assets are prepared for App Store'\n    ]\n  };\n}\n\nconsole.log('✅ Cortes performance intelligence completed:', {\n  assets_found: performanceIntelligence.assets_found,\n  total_assets: performanceIntelligence.asset_analysis.total_assets,\n  ios_optimization_score: performanceIntelligence.cortes_performance_metrics.ios_optimization_score,\n  app_store_readiness: performanceIntelligence.cortes_performance_metrics.app_store_readiness\n});\n\nreturn [{ json: performanceIntelligence }];"
+      },
+      "name": "Analyze Cortes Performance Intelligence",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        740,
+        60
+      ],
+      "id": "86573c96-6d8e-4eed-b8d9-4867ff03205c"
+    },
+    {
+      "parameters": {
+        "functionCode": "// ANÁLISIS ROBUSTO DE DEPENDENCIAS PARA CORTES\nconst packageSwift = items[0]?.json?.stdout || 'no_package_swift_found';\nconst packageResolved = items[1]?.json?.stdout || 'no_package_resolved_found';\nconst packageJson = items[2]?.json?.stdout || 'no_package_json_found';\n\nconst dependencyAnalysis = {\n  timestamp: new Date().toISOString(),\n  project_name: 'Cortes',\n  swift_ecosystem: {\n    manifest_found: !packageSwift.includes('no_package_swift_found'),\n    resolved_found: !packageResolved.includes('no_package_resolved_found'),\n    dependencies_count: 0,\n    dependencies_list: [],\n    cortes_relevant_packages: []\n  },\n  npm_ecosystem: {\n    manifest_found: !packageJson.includes('no_package_json_found'),\n    dependencies_count: 0,\n    dev_dependencies_count: 0,\n    project_info: {},\n    cortes_web_dependencies: []\n  },\n  cortes_dependency_insights: {\n    ui_frameworks: [],\n    data_persistence: [],\n    analytics: [],\n    monetization: [],\n    networking: []\n  },\n  security_assessment: {\n    swift_security: 'no_swift_dependencies',\n    npm_security: 'no_npm_dependencies',\n    risk_assessment: 'minimal',\n    cortes_security_considerations: []\n  },\n  cross_platform_complexity: 'none',\n  cortes_recommendations: []\n};\n\n// Analyze Package.swift for Cortes\nif (dependencyAnalysis.swift_ecosystem.manifest_found) {\n  const swiftContent = packageSwift.replace(/^Package\\.swift analysis:.*$/gm, '').trim();\n  \n  // Count .package declarations\n  const dependencyMatches = swiftContent.match(/\\.package\\s*\\(/g) || [];\n  dependencyAnalysis.swift_ecosystem.dependencies_count = dependencyMatches.length;\n  \n  // Extract dependency information\n  const urlMatches = swiftContent.match(/url:\\s*\"([^\"]+)\"/g) || [];\n  const nameMatches = swiftContent.match(/name:\\s*\"([^\"]+)\"/g) || [];\n  \n  const dependencies = [];\n  const cortesRelevant = [];\n  \n  urlMatches.forEach(match => {\n    const url = match.replace(/url:\\s*\"([^\"]+)\"/, '$1');\n    let packageName = 'unknown';\n    \n    if (url.includes('github.com')) {\n      packageName = url.split('/').pop().replace('.git', '');\n      dependencies.push({ type: 'github', name: packageName, url });\n      \n      // Identify Cortes-relevant packages\n      if (packageName.toLowerCase().includes('swiftui') || \n          packageName.toLowerCase().includes('combine') ||\n          packageName.toLowerCase().includes('core') ||\n          packageName.toLowerCase().includes('cloudkit') ||\n          packageName.toLowerCase().includes('chart') ||\n          packageName.toLowerCase().includes('pdf')) {\n        cortesRelevant.push({ name: packageName, category: 'cortes_relevant', url });\n      }\n    } else {\n      dependencies.push({ type: 'other', name: packageName, url });\n    }\n  });\n  \n  dependencyAnalysis.swift_ecosystem.dependencies_list = dependencies;\n  dependencyAnalysis.swift_ecosystem.cortes_relevant_packages = cortesRelevant;\n  \n  // Categorize dependencies for Cortes insights\n  dependencies.forEach(dep => {\n    const name = dep.name.toLowerCase();\n    if (name.includes('ui') || name.includes('swiftui') || name.includes('view')) {\n      dependencyAnalysis.cortes_dependency_insights.ui_frameworks.push(dep.name);\n    }\n    if (name.includes('core') || name.includes('data') || name.includes('cloudkit') || name.includes('realm')) {\n      dependencyAnalysis.cortes_dependency_insights.data_persistence.push(dep.name);\n    }\n    if (name.includes('chart') || name.includes('analytics') || name.includes('metric')) {\n      dependencyAnalysis.cortes_dependency_insights.analytics.push(dep.name);\n    }\n    if (name.includes('store') || name.includes('purchase') || name.includes('payment')) {\n      dependencyAnalysis.cortes_dependency_insights.monetization.push(dep.name);\n    }\n    if (name.includes('network') || name.includes('alamofire') || name.includes('url')) {\n      dependencyAnalysis.cortes_dependency_insights.networking.push(dep.name);\n    }\n  });\n  \n  // Security assessment for Swift packages\n  if (swiftContent.includes('github.com')) {\n    dependencyAnalysis.security_assessment.swift_security = 'github_dependencies_detected';\n    if (dependencies.length > 10) {\n      dependencyAnalysis.security_assessment.swift_security = 'high_dependency_count_github';\n    }\n  } else if (dependencyMatches.length > 0) {\n    dependencyAnalysis.security_assessment.swift_security = 'custom_dependencies_found';\n  }\n}\n\n// Analyze Package.resolved\nif (dependencyAnalysis.swift_ecosystem.resolved_found) {\n  try {\n    const resolvedContent = packageResolved.replace(/^Package\\.resolved analysis:.*$/gm, '').trim();\n    const resolved = JSON.parse(resolvedContent);\n    const packages = resolved.pins || resolved.object?.pins || [];\n    dependencyAnalysis.swift_ecosystem.resolved_count = packages.length;\n    dependencyAnalysis.swift_ecosystem.resolved_packages = packages.slice(0, 15);\n  } catch (e) {\n    dependencyAnalysis.swift_ecosystem.resolved_error = 'Could not parse Package.resolved';\n  }\n}\n\n// Analyze package.json for web components\nif (dependencyAnalysis.npm_ecosystem.manifest_found) {\n  try {\n    const jsonContent = packageJson.replace(/^package\\.json analysis:.*$/gm, '').trim();\n    const pkg = JSON.parse(jsonContent);\n    \n    const depCount = Object.keys(pkg.dependencies || {}).length;\n    const devDepCount = Object.keys(pkg.devDependencies || {}).length;\n    \n    dependencyAnalysis.npm_ecosystem.dependencies_count = depCount;\n    dependencyAnalysis.npm_ecosystem.dev_dependencies_count = devDepCount;\n    dependencyAnalysis.npm_ecosystem.project_info = {\n      name: pkg.name,\n      version: pkg.version,\n      description: pkg.description,\n      scripts: Object.keys(pkg.scripts || {})\n    };\n    \n    // Identify Cortes web-relevant dependencies\n    const webDeps = Object.keys(pkg.dependencies || {});\n    dependencyAnalysis.npm_ecosystem.cortes_web_dependencies = webDeps.filter(dep => \n      dep.includes('react') || dep.includes('vue') || dep.includes('angular') ||\n      dep.includes('chart') || dep.includes('analytics') || dep.includes('stripe') ||\n      dep.includes('payment') || dep.includes('auth')\n    );\n    \n    // Security assessment based on dependency count\n    if (depCount > 100) {\n      dependencyAnalysis.security_assessment.npm_security = 'very_high_dependency_count';\n      dependencyAnalysis.security_assessment.risk_assessment = 'high';\n    } else if (depCount > 50) {\n      dependencyAnalysis.security_assessment.npm_security = 'high_dependency_count';\n      dependencyAnalysis.security_assessment.risk_assessment = 'moderate';\n    } else if (depCount > 25) {\n      dependencyAnalysis.security_assessment.npm_security = 'moderate_dependency_count';\n      dependencyAnalysis.security_assessment.risk_assessment = 'low';\n    } else if (depCount > 0) {\n      dependencyAnalysis.security_assessment.npm_security = 'low_dependency_count';\n      dependencyAnalysis.security_assessment.risk_assessment = 'minimal';\n    }\n    \n  } catch (e) {\n    dependencyAnalysis.npm_ecosystem.error = 'Could not parse package.json';\n  }\n}\n\n// Generate enhanced assessment and recommendations\nconst totalDeps = dependencyAnalysis.swift_ecosystem.dependencies_count + \n                 (dependencyAnalysis.npm_ecosystem.dependencies_count || 0);\n\nconst swiftDeps = dependencyAnalysis.swift_ecosystem.dependencies_count;\nconst npmDeps = dependencyAnalysis.npm_ecosystem.dependencies_count || 0;\n\n// Cross-platform complexity assessment\nif (swiftDeps > 0 && npmDeps > 0) {\n  dependencyAnalysis.cross_platform_complexity = 'high_complexity';\n} else if (swiftDeps > 0) {\n  dependencyAnalysis.cross_platform_complexity = 'swift_only';\n} else if (npmDeps > 0) {\n  dependencyAnalysis.cross_platform_complexity = 'web_only';\n} else {\n  dependencyAnalysis.cross_platform_complexity = 'minimal_dependencies';\n}\n\n// Cortes-specific security considerations\nconst securityConsiderations = [];\nif (dependencyAnalysis.cortes_dependency_insights.monetization.length > 0) {\n  securityConsiderations.push('Review payment/monetization dependencies for security');\n}\nif (dependencyAnalysis.cortes_dependency_insights.data_persistence.length > 0) {\n  securityConsiderations.push('Ensure data persistence libraries are secure and updated');\n}\nif (dependencyAnalysis.cortes_dependency_insights.networking.length > 0) {\n  securityConsiderations.push('Verify networking dependencies use secure protocols');\n}\nif (totalDeps > 20) {\n  securityConsiderations.push('High dependency count - implement regular security audits');\n}\n\ndependencyAnalysis.security_assessment.cortes_security_considerations = securityConsiderations;\n\n// Generate Cortes-specific recommendations\nconst recommendations = [];\n\nif (totalDeps === 0) {\n  recommendations.push('Consider adding core dependencies: SwiftUI Charts, CloudKit, StoreKit 2');\n  recommendations.push('Implement proper dependency management from the start');\n} else if (totalDeps < 15) {\n  recommendations.push('Good dependency management - maintain current lean approach');\n  recommendations.push('Evaluate if core Cortes features need additional libraries');\n} else if (totalDeps < 30) {\n  recommendations.push('Moderate dependency count - monitor for optimization opportunities');\n  recommendations.push('Regular dependency audits recommended');\n} else {\n  recommendations.push('HIGH PRIORITY: Dependency audit and cleanup needed');\n  recommendations.push('Consider dependency consolidation for better performance');\n}\n\n// Cortes feature-specific recommendations\nif (dependencyAnalysis.cortes_dependency_insights.analytics.length === 0) {\n  recommendations.push('Consider adding analytics framework for business intelligence');\n}\nif (dependencyAnalysis.cortes_dependency_insights.monetization.length === 0) {\n  recommendations.push('Ensure StoreKit 2 is properly configured for premium features');\n}\nif (dependencyAnalysis.cortes_dependency_insights.ui_frameworks.length === 0) {\n  recommendations.push('Consider SwiftUI Charts for analytics visualization');\n}\n\ndependencyAnalysis.cortes_recommendations = recommendations;\n\nconsole.log('✅ Cortes dependency analysis completed:', {\n  swift_deps: swiftDeps,\n  npm_deps: npmDeps,\n  total_deps: totalDeps,\n  cross_platform: dependencyAnalysis.cross_platform_complexity\n});\n\nreturn [{ json: dependencyAnalysis }];"
+      },
+      "name": "Analyze Cortes Dependencies",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        740,
+        -940
+      ],
+      "id": "09889e49-e77c-4b38-b6a4-f086d5a5a118"
+    },
+    {
+      "parameters": {
+        "functionCode": "// ULTIMATE CORTES CONTEXT MERGER - PRODUCTION VERSION\nconst projectStructure = items.find(item => item.json.timestamp && item.json.total_files !== undefined)?.json || {};\nconst gitIntelligence = items.find(item => item.json.development_velocity)?.json || {};\nconst testingIntelligence = items.find(item => item.json.test_coverage)?.json || {};\nconst performanceIntelligence = items.find(item => item.json.asset_analysis)?.json || {};\nconst dependencyAnalysis = items.find(item => item.json.swift_ecosystem)?.json || {};\n\n// ENHANCED HELPER FUNCTIONS FOR CORTES\nfunction assessCortesReadiness(project, testing, performance, git, dependency) {\n  const criteria = {\n    project_structure: project.scan_successful && project.files_found && (project.total_files || 0) > 10,\n    ios_architecture: project.cortes_specific_insights?.ios_project || false,\n    swiftui_implementation: project.cortes_specific_insights?.swiftui_detected || false,\n    testing_coverage: (testing.test_coverage?.total_test_files || 0) > 8,\n    performance_optimized: (performance.cortes_performance_metrics?.ios_optimization_score || 0) > 75,\n    version_control: git.git_available || false,\n    dependency_management: dependency.swift_ecosystem?.manifest_found || false,\n    app_store_ready: (performance.cortes_performance_metrics?.app_store_readiness === 'excellent' || \n                     performance.cortes_performance_metrics?.app_store_readiness === 'good')\n  };\n  \n  const score = Object.values(criteria).filter(Boolean).length;\n  const maxScore = Object.keys(criteria).length;\n  \n  if (score >= maxScore - 1) return 'launch_ready';\n  if (score >= maxScore - 2) return 'nearly_ready';\n  if (score >= maxScore - 3) return 'needs_polish';\n  if (score >= 3) return 'development_phase';\n  return 'early_stage';\n}\n\nfunction calculateCortesMonetizationScore(testing, performance, git, project) {\n  let score = 0;\n  \n  // Core functionality (30 points)\n  if (project.scan_successful && (project.total_files || 0) > 15) score += 30;\n  else if (project.scan_successful && (project.total_files || 0) > 5) score += 20;\n  \n  // Testing confidence (25 points)\n  if ((testing.test_coverage?.total_test_files || 0) > 15) score += 25;\n  else if ((testing.test_coverage?.total_test_files || 0) > 8) score += 20;\n  else if ((testing.test_coverage?.total_test_files || 0) > 3) score += 15;\n  else if ((testing.test_coverage?.total_test_files || 0) > 0) score += 10;\n  \n  // Performance optimization (25 points)\n  const perfScore = performance.cortes_performance_metrics?.ios_optimization_score || 0;\n  if (perfScore > 90) score += 25;\n  else if (perfScore > 80) score += 20;\n  else if (perfScore > 70) score += 15;\n  else if (perfScore > 60) score += 10;\n  \n  // Development momentum (20 points)\n  if (git.git_available && git.insights?.project_momentum === 'active') score += 20;\n  else if (git.git_available && (git.development_velocity?.commits_30_days || 0) > 10) score += 15;\n  else if (git.git_available && (git.development_velocity?.commits_30_days || 0) > 0) score += 10;\n  else if (git.git_available) score += 5;\n  \n  return Math.min(score, 100);\n}\n\nfunction generateCortesActionPlan(project, git, testing, performance, dependency) {\n  const actions = [];\n  \n  // Critical path items\n  if (!project.scan_successful || !project.files_found) {\n    actions.push({\n      priority: 'critical',\n      category: 'infrastructure',\n      action: 'Fix Docker volume mapping and project access',\n      timeframe: '30 minutes',\n      impact: 'Blocks all development work',\n      cortes_benefit: 'Enables development workflow'\n    });\n    return actions; // Block everything else until this is fixed\n  }\n  \n  // High priority items\n  if (!testing.tests_found || (testing.test_coverage?.total_test_files || 0) < 10) {\n    actions.push({\n      priority: 'high',\n      category: 'quality_assurance',\n      action: 'Build comprehensive test suite for Cortes core features',\n      timeframe: '3-5 days',\n      impact: 'Production confidence and App Store approval',\n      cortes_benefit: 'Reduces bugs, improves user trust, enables CI/CD'\n    });\n  }\n  \n  if (performance.cortes_performance_metrics?.ios_optimization_score < 80) {\n    actions.push({\n      priority: 'high',\n      category: 'performance',\n      action: 'Optimize assets and performance for iOS',\n      timeframe: '2-3 days',\n      impact: 'User experience and App Store metrics',\n      cortes_benefit: 'Better ratings, faster downloads, higher retention'\n    });\n  }\n  \n  // Medium priority items\n  if (!git.git_available) {\n    actions.push({\n      priority: 'medium',\n      category: 'development_workflow',\n      action: 'Initialize Git repository with proper branching strategy',\n      timeframe: '2 hours',\n      impact: 'Team collaboration and deployment automation',\n      cortes_benefit: 'Enables version control and CI/CD pipeline'\n    });\n  }\n  \n  if (!dependency.swift_ecosystem?.manifest_found) {\n    actions.push({\n      priority: 'medium',\n      category: 'dependency_management',\n      action: 'Set up Package.swift with core Cortes dependencies',\n      timeframe: '1 day',\n      impact: 'Proper dependency management and build reliability',\n      cortes_benefit: 'Charts, CloudKit, StoreKit 2 integration'\n    });\n  }\n  \n  // Polish items\n  if (project.cortes_specific_insights?.documentation_quality === 'minimal') {\n    actions.push({\n      priority: 'low',\n      category: 'documentation',\n      action: 'Create comprehensive Cortes documentation',\n      timeframe: '2-3 days',\n      impact: 'Team onboarding and maintenance',\n      cortes_benefit: 'Easier feature development and team scaling'\n    });\n  }\n  \n  return actions.slice(0, 8); // Top 8 priorities\n}\n\n// CREATE ULTIMATE CORTES CONTEXT\nconst ultimateCortesContext = {\n  metadata: {\n    projectName: 'Cortes',\n    generated: new Date().toISOString(),\n    version: '9.0.0-cortes-production',\n    contextType: 'cortes-ultimate-intelligence',\n    project_path: projectStructure.project_path || '/data/cortes',\n    cortes_app_path: projectStructure.cortes_app_path || '/data/cortes/Cortes',\n    context_path: '/data/cortes/cortes-context',\n    mac_destination: '/Users/molinesmac/Documents/Cortes/cortes-context',\n    project_scan_successful: projectStructure.scan_successful || false,\n    container_id: process.env.HOSTNAME || 'n8n-container',\n    workflow_version: '9.0.0-production-ready',\n    capabilities: [\n      'cortes-specific-analysis',\n      'ios-app-optimization',\n      'monetization-readiness',\n      'app-store-preparation',\n      'performance-optimization',\n      'testing-strategy',\n      'dependency-management',\n      'business-intelligence'\n    ]\n  },\n  \n  cortes_project_intelligence: {\n    scan_status: projectStructure.scan_successful ? 'successful' : 'failed',\n    project_found: projectStructure.files_found || false,\n    architecture_type: projectStructure.project_type_detected || 'unknown',\n    ios_project_detected: projectStructure.cortes_specific_insights?.ios_project || false,\n    swiftui_implementation: projectStructure.cortes_specific_insights?.swiftui_detected || false,\n    file_metrics: {\n      total_files: projectStructure.total_files || 0,\n      swift_files: projectStructure.categories?.swift_files || 0,\n      xcode_projects: projectStructure.categories?.xcode_projects || 0,\n      config_files: projectStructure.categories?.config_files || 0,\n      documentation_files: projectStructure.categories?.documentation || 0\n    },\n    cortes_structure: projectStructure.cortes_structure || {},\n    documentation_quality: projectStructure.cortes_specific_insights?.documentation_quality || 'unknown'\n  },\n  \n  cortes_development_intelligence: {\n    git_repository_found: gitIntelligence.git_available || false,\n    development_health: gitIntelligence.insights?.development_health || 'unknown',\n    project_momentum: gitIntelligence.insights?.project_momentum || 'unknown',\n    team_collaboration: gitIntelligence.insights?.team_collaboration || 'unknown',\n    velocity_metrics: {\n      commits_last_30_days: gitIntelligence.development_velocity?.commits_30_days || 0,\n      commits_last_14_days: gitIntelligence.development_velocity?.commits_14_days || 0,\n      active_developers: gitIntelligence.development_velocity?.active_developers?.length || 0,\n      development_pace: gitIntelligence.development_velocity?.development_pace || 'unknown'\n    },\n    cortes_development_focus: gitIntelligence.cortes_development_insights || {},\n    refactor_priorities: (gitIntelligence.hot_spots?.refactor_candidates || []).slice(0, 5),\n    cortes_commits: (gitIntelligence.commit_patterns?.cortes_specific_commits || []).slice(0, 8)\n  },\n  \n  cortes_testing_intelligence: {\n    scan_status: testingIntelligence.scan_successful ? 'successful' : 'failed',\n    tests_found: testingIntelligence.tests_found || false,\n    testing_maturity: testingIntelligence.insights?.testing_maturity || 'none',\n    deployment_confidence: testingIntelligence.insights?.deployment_confidence || 'low',\n    test_metrics: {\n      total_test_files: testingIntelligence.test_coverage?.total_test_files || 0,\n      swift_test_files: testingIntelligence.test_coverage?.swift_test_files || 0,\n      ui_test_files: testingIntelligence.test_coverage?.ui_test_files || 0,\n      unit_test_files: testingIntelligence.test_coverage?.unit_test_files || 0\n    },\n    cortes_test_coverage: testingIntelligence.cortes_test_insights || {},\n    cortes_test_patterns: testingIntelligence.cortes_testing_patterns || {},\n    testing_frameworks: testingIntelligence.testing_frameworks || {}\n  },\n  \n  cortes_performance_intelligence: {\n    scan_status: performanceIntelligence.scan_successful ? 'successful' : 'failed',\n    assets_found: performanceIntelligence.assets_found || false,\n    app_store_readiness: performanceIntelligence.cortes_performance_metrics?.app_store_readiness || 'unknown',\n    ios_optimization_score: performanceIntelligence.cortes_performance_metrics?.ios_optimization_score || 0,\n    user_experience_score: performanceIntelligence.cortes_performance_metrics?.user_experience_score || 0,\n    asset_metrics: {\n      total_assets: performanceIntelligence.asset_analysis?.total_assets || 0,\n      total_size_mb: Math.round((performanceIntelligence.asset_analysis?.total_asset_size_kb || 0) / 1024 * 100) / 100,\n      large_assets_count: (performanceIntelligence.asset_analysis?.large_assets || []).length,\n      optimization_opportunities: (performanceIntelligence.asset_analysis?.optimization_opportunities || []).length\n    },\n    cortes_assets: performanceIntelligence.asset_analysis?.cortes_specific_assets || {},\n    optimization_recommendations: performanceIntelligence.optimization_recommendations || {},\n    estimated_savings: performanceIntelligence.optimization_recommendations?.estimated_savings || '0MB'\n  },\n  \n  cortes_dependency_intelligence: {\n    dependencies_found: dependencyAnalysis.swift_ecosystem?.manifest_found || dependencyAnalysis.npm_ecosystem?.manifest_found || false,\n    cross_platform_complexity: dependencyAnalysis.cross_platform_complexity || 'minimal_dependencies',\n    dependency_metrics: {\n      swift_dependencies: dependencyAnalysis.swift_ecosystem?.dependencies_count || 0,\n      npm_dependencies: dependencyAnalysis.npm_ecosystem?.dependencies_count || 0,\n      total_dependencies: (dependencyAnalysis.swift_ecosystem?.dependencies_count || 0) + \n                         (dependencyAnalysis.npm_ecosystem?.dependencies_count || 0)\n    },\n    cortes_insights: dependencyAnalysis.cortes_dependency_insights || {},\n    security_assessment: dependencyAnalysis.security_assessment || {},\n    cortes_recommendations: dependencyAnalysis.cortes_recommendations || []\n  },\n  \n  cortes_business_intelligence: {\n    monetization_readiness: assessCortesReadiness(\n      projectStructure, testingIntelligence, performanceIntelligence, gitIntelligence, dependencyAnalysis\n    ),\n    monetization_score: calculateCortesMonetizationScore(\n      testingIntelligence, performanceIntelligence, gitIntelligence, projectStructure\n    ),\n    launch_readiness_criteria: {\n      project_structure: projectStructure.scan_successful && projectStructure.files_found,\n      ios_architecture: projectStructure.cortes_specific_insights?.ios_project || false,\n      testing_coverage: (testingIntelligence.test_coverage?.total_test_files || 0) > 8,\n      performance_optimized: (performanceIntelligence.cortes_performance_metrics?.ios_optimization_score || 0) > 75,\n      app_store_ready: performanceIntelligence.cortes_performance_metrics?.app_store_readiness === 'excellent' || \n                      performanceIntelligence.cortes_performance_metrics?.app_store_readiness === 'good'\n    },\n    revenue_potential: {\n      technical_foundation: projectStructure.scan_successful && projectStructure.files_found ? 'solid' : 'needs_work',\n      user_experience_quality: performanceIntelligence.cortes_performance_metrics?.user_experience_score > 80 ? 'excellent' : 'needs_improvement',\n      market_readiness: testingIntelligence.insights?.deployment_confidence || 'low'\n    },\n    competitive_advantages: [\n      projectStructure.cortes_specific_insights?.swiftui_detected ? 'Modern SwiftUI implementation' : null,\n      performanceIntelligence.cortes_performance_metrics?.ios_optimization_score > 85 ? 'Optimized performance' : null,\n      testingIntelligence.test_coverage?.total_test_files > 15 ? 'Comprehensive testing' : null,\n      gitIntelligence.insights?.project_momentum === 'active' ? 'Active development' : null\n    ].filter(Boolean)\n  },\n  \n  cortes_action_plan: {\n    immediate_priorities: generateCortesActionPlan(\n      projectStructure, gitIntelligence, testingIntelligence, performanceIntelligence, dependencyAnalysis\n    ),\n    development_roadmap: {\n      phase_1: 'Core infrastructure and testing setup',\n      phase_2: 'Performance optimization and UI polish',\n      phase_3: 'App Store preparation and launch',\n      phase_4: 'Post-launch optimization and scaling'\n    },\n    estimated_timeline: {\n      to_mvp: '2-3 weeks',\n      to_app_store: '4-6 weeks',\n      to_monetization: '6-8 weeks'\n    },\n    success_metrics: {\n      technical_debt_score: gitIntelligence.hot_spots?.refactor_candidates?.length < 3 ? 'low' : 'moderate',\n      deployment_confidence: testingIntelligence.insights?.deployment_confidence || 'low',\n      performance_score: performanceIntelligence.cortes_performance_metrics?.ios_optimization_score || 0,\n      business_readiness: assessCortesReadiness(\n        projectStructure, testingIntelligence, performanceIntelligence, gitIntelligence, dependencyAnalysis\n      )\n    }\n  },\n  \n  claude_integration: {\n    context_optimized_for_claude: true,\n    claude_can_help_with: [\n      'Swift/SwiftUI development and debugging',\n      'iOS performance optimization',\n      'Test development and coverage improvement',\n      'Architecture recommendations',\n      'App Store optimization strategies',\n      'Business logic implementation',\n      'Code refactoring and cleanup',\n      'Dependency management',\n      'CI/CD pipeline setup',\n      'Monetization strategy implementation'\n    ],\n    recommended_claude_workflows: [\n      'Code review and optimization',\n      'Test case generation',\n      'Documentation creation',\n      'Bug fixing and debugging',\n      'Feature development guidance',\n      'Performance bottleneck identification',\n      'Architecture improvement suggestions'\n    ],\n    context_refresh_recommended: 'weekly_during_active_development'\n  }\n};\n\nconsole.log('🎯 ULTIMATE CORTES CONTEXT COMPLETED', {\n  monetization_readiness: ultimateCortesContext.cortes_business_intelligence.monetization_readiness,\n  files_detected: ultimateCortesContext.cortes_project_intelligence.file_metrics.total_files,\n  ios_optimization_score: ultimateCortesContext.cortes_performance_intelligence.ios_optimization_score,\n  deployment_confidence: ultimateCortesContext.cortes_testing_intelligence.deployment_confidence\n});\n\nreturn [{ json: ultimateCortesContext }];"
+      },
+      "name": "Create Ultimate Cortes Context",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        960,
+        -640
+      ],
+      "id": "ffe09fa3-cf24-4b42-ac0f-f19345ea5f23"
+    },
+    {
+      "parameters": {
+        "command": "echo '📁 Saving ultimate-cortes-context with timestamp...' && mkdir -p /data/cortes/cortes-context && cd /data/cortes/cortes-context && TIMESTAMP=$(date +'%d-%m-%Y_%H:%M:%S') && cat > ultimate-cortes-context_$TIMESTAMP.json << 'ULTIMATE_EOF'\n{{ JSON.stringify($json, null, 2) }}\nULTIMATE_EOF\necho \"✅ ultimate-cortes-context_$TIMESTAMP.json saved\" && ls -la ultimate-cortes-context_$TIMESTAMP.json && echo \"File size: $(wc -c < ultimate-cortes-context_$TIMESTAMP.json) bytes\""
+      },
+      "name": "Save Ultimate Context",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        -840
+      ],
+      "id": "86d8ff0a-67a1-481b-8e7a-a4d637a162b0"
+    },
+    {
+      "parameters": {
+        "command": "echo '📁 Saving claude-cortes-context with timestamp...' && mkdir -p /data/cortes/cortes-context && cd /data/cortes/cortes-context && TIMESTAMP=$(date +'%d-%m-%Y_%H:%M:%S') && cat > claude-cortes-context_$TIMESTAMP.json << 'CLAUDE_EOF'\n{\n  \"project_overview\": {\n    \"name\": \"{{ $json.metadata.projectName }}\",\n    \"type\": \"{{ $json.cortes_project_intelligence.architecture_type }}\",\n    \"ios_project\": {{ $json.cortes_project_intelligence.ios_project_detected }},\n    \"swiftui_detected\": {{ $json.cortes_project_intelligence.swiftui_implementation }},\n    \"scan_successful\": {{ $json.cortes_project_intelligence.scan_status === 'successful' }},\n    \"monetization_readiness\": \"{{ $json.cortes_business_intelligence.monetization_readiness }}\",\n    \"app_store_readiness\": \"{{ $json.cortes_performance_intelligence.app_store_readiness }}\",\n    \"last_analysis\": \"{{ $json.metadata.generated }}\"\n  },\n  \"key_metrics\": {\n    \"total_files\": {{ $json.cortes_project_intelligence.file_metrics.total_files }},\n    \"swift_files\": {{ $json.cortes_project_intelligence.file_metrics.swift_files }},\n    \"test_files\": {{ $json.cortes_testing_intelligence.test_metrics.total_test_files }},\n    \"ios_optimization_score\": {{ $json.cortes_performance_intelligence.ios_optimization_score }},\n    \"monetization_score\": {{ $json.cortes_business_intelligence.monetization_score }},\n    \"total_assets\": {{ $json.cortes_performance_intelligence.asset_metrics.total_assets }},\n    \"total_dependencies\": {{ $json.cortes_dependency_intelligence.dependency_metrics.total_dependencies }}\n  },\n  \"development_intelligence\": {\n    \"git_available\": {{ $json.cortes_development_intelligence.git_repository_found }},\n    \"commits_last_30_days\": {{ $json.cortes_development_intelligence.velocity_metrics.commits_last_30_days }},\n    \"development_pace\": \"{{ $json.cortes_development_intelligence.velocity_metrics.development_pace }}\",\n    \"project_momentum\": \"{{ $json.cortes_development_intelligence.project_momentum }}\",\n    \"team_size\": {{ $json.cortes_development_intelligence.velocity_metrics.active_developers }}\n  },\n  \"testing_intelligence\": {\n    \"testing_maturity\": \"{{ $json.cortes_testing_intelligence.testing_maturity }}\",\n    \"deployment_confidence\": \"{{ $json.cortes_testing_intelligence.deployment_confidence }}\",\n    \"client_test_coverage\": \"{{ $json.cortes_testing_intelligence.cortes_test_coverage.client_management_coverage || 'unknown' }}\",\n    \"session_test_coverage\": \"{{ $json.cortes_testing_intelligence.cortes_test_coverage.session_management_coverage || 'unknown' }}\",\n    \"analytics_test_coverage\": \"{{ $json.cortes_testing_intelligence.cortes_test_coverage.analytics_coverage || 'unknown' }}\"\n  },\n  \"performance_intelligence\": {\n    \"user_experience_score\": {{ $json.cortes_performance_intelligence.user_experience_score }},\n    \"total_asset_size_mb\": {{ $json.cortes_performance_intelligence.asset_metrics.total_size_mb }},\n    \"large_assets_count\": {{ $json.cortes_performance_intelligence.asset_metrics.large_assets_count }},\n    \"estimated_savings\": \"{{ $json.cortes_performance_intelligence.estimated_savings }}\"\n  },\n  \"github_integration\": {\n    \"repository\": \"MoLinesGitHub/Cortes\",\n    \"url\": \"https://github.com/MoLinesGitHub/Cortes\",\n    \"integration_ready\": true\n  },\n  \"claude_can_help_with\": [\n    \"Swift/SwiftUI development and debugging\",\n    \"iOS performance optimization\", \n    \"Test development and coverage improvement\",\n    \"GitHub workflow setup\",\n    \"Code review and optimization\",\n    \"App Store preparation\"\n  ],\n  \"estimated_timeline\": {\n    \"to_mvp\": \"{{ $json.cortes_action_plan.estimated_timeline.to_mvp || '2-3 weeks' }}\",\n    \"to_app_store\": \"{{ $json.cortes_action_plan.estimated_timeline.to_app_store || '4-6 weeks' }}\",\n    \"to_monetization\": \"{{ $json.cortes_action_plan.estimated_timeline.to_monetization || '6-8 weeks' }}\"\n  }\n}\nCLAUDE_EOF\necho \"✅ claude-cortes-context_$TIMESTAMP.json saved\" && ls -la claude-cortes-context_$TIMESTAMP.json && echo \"File size: $(wc -c < claude-cortes-context_$TIMESTAMP.json) bytes\""
+      },
+      "name": "Save Claude Context",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        -640
+      ],
+      "id": "bf44d418-2b51-4fdb-83de-b5e174d159cc"
+    },
+    {
+      "parameters": {
+        "command": "echo '📁 Saving executive-cortes-dashboard with timestamp...' && mkdir -p /data/cortes/cortes-context && cd /data/cortes/cortes-context && TIMESTAMP=$(date +'%d-%m-%Y_%H:%M:%S') && cat > executive-cortes-dashboard_$TIMESTAMP.json << 'DASHBOARD_EOF'\n{\n  \"generated\": \"{{ $json.metadata.generated }}\",\n  \"project\": \"{{ $json.metadata.projectName }}\",\n  \"version\": \"{{ $json.metadata.version }}\",\n  \"container_id\": \"{{ $json.metadata.container_id }}\",\n  \"paths\": {\n    \"project_path\": \"{{ $json.metadata.project_path }}\",\n    \"context_path\": \"{{ $json.metadata.context_path }}\",\n    \"mac_destination\": \"{{ $json.metadata.mac_destination }}\"\n  },\n  \"executive_summary\": {\n    \"monetization_readiness\": \"{{ $json.cortes_business_intelligence.monetization_readiness }}\",\n    \"monetization_score\": {{ $json.cortes_business_intelligence.monetization_score }},\n    \"app_store_readiness\": \"{{ $json.cortes_performance_intelligence.app_store_readiness }}\",\n    \"deployment_confidence\": \"{{ $json.cortes_testing_intelligence.deployment_confidence }}\",\n    \"ios_optimization_score\": {{ $json.cortes_performance_intelligence.ios_optimization_score }},\n    \"development_pace\": \"{{ $json.cortes_development_intelligence.velocity_metrics.development_pace }}\"\n  },\n  \"technical_metrics\": {\n    \"total_files\": {{ $json.cortes_project_intelligence.file_metrics.total_files }},\n    \"swift_files\": {{ $json.cortes_project_intelligence.file_metrics.swift_files }},\n    \"test_files\": {{ $json.cortes_testing_intelligence.test_metrics.total_test_files }},\n    \"total_assets\": {{ $json.cortes_performance_intelligence.asset_metrics.total_assets }},\n    \"total_dependencies\": {{ $json.cortes_dependency_intelligence.dependency_metrics.total_dependencies }},\n    \"commits_last_30_days\": {{ $json.cortes_development_intelligence.velocity_metrics.commits_last_30_days }}\n  },\n  \"github_info\": {\n    \"repository\": \"MoLinesGitHub/Cortes\",\n    \"owner\": \"MoLinesGitHub\",\n    \"url\": \"https://github.com/MoLinesGitHub/Cortes\",\n    \"token_configured\": true\n  },\n  \"launch_readiness_criteria\": {\n    \"project_structure\": {{ $json.cortes_business_intelligence.launch_readiness_criteria.project_structure }},\n    \"ios_architecture\": {{ $json.cortes_business_intelligence.launch_readiness_criteria.ios_architecture }},\n    \"testing_coverage\": {{ $json.cortes_business_intelligence.launch_readiness_criteria.testing_coverage }},\n    \"performance_optimized\": {{ $json.cortes_business_intelligence.launch_readiness_criteria.performance_optimized }},\n    \"app_store_ready\": {{ $json.cortes_business_intelligence.launch_readiness_criteria.app_store_ready }}\n  },\n  \"estimated_timeline_to_launch\": \"{{ $json.cortes_action_plan.estimated_timeline.to_app_store || '4-6 weeks' }}\",\n  \"setup_complete\": true\n}\nDASHBOARD_EOF\necho \"✅ executive-cortes-dashboard_$TIMESTAMP.json saved\" && ls -la executive-cortes-dashboard_$TIMESTAMP.json && echo \"File size: $(wc -c < executive-cortes-dashboard_$TIMESTAMP.json) bytes\""
+      },
+      "name": "Save Executive Dashboard",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        -440
+      ],
+      "id": "9cb86bf0-078d-4e48-8c01-3684bfd0850a"
+    },
+    {
+      "parameters": {
+        "command": "echo '📂 Managing historical files...' && cd /data/cortes/cortes-context && TODAY=$(date +'%d-%m-%Y') && HISTORIC_DIR=\"Historico del Día $TODAY\" && mkdir -p \"$HISTORIC_DIR\" && echo \"📁 Created: $HISTORIC_DIR\" && echo '' && echo '🔄 Moving old files to historic folder...' && for prefix in ultimate-cortes-context claude-cortes-context executive-cortes-dashboard; do LATEST=$(ls -1t ${prefix}_*.json 2>/dev/null | head -1); if [ ! -z \"$LATEST\" ]; then echo \"📌 Keeping latest: $LATEST\"; ls -1t ${prefix}_*.json 2>/dev/null | tail -n +2 | while read oldfile; do if [ -f \"$oldfile\" ]; then mv \"$oldfile\" \"$HISTORIC_DIR/\" && echo \"📦 Moved to historic: $oldfile\"; fi; done; fi; done && echo '' && echo '🗑️ Cleaning historic folders older than 30 days...' && find . -maxdepth 1 -type d -name 'Historico del Día *' -mtime +30 -exec rm -rf {} \\; -exec echo '🗑️ Deleted old historic folder: {}' \\; 2>/dev/null && echo '' && echo '📋 Current structure:' && ls -la && echo '' && echo '📂 Historic folders:' && ls -la Historico\\ del\\ Día\\ */ 2>/dev/null || echo 'No historic folders yet'"
+      },
+      "name": "Manage Historical Files",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        -640
+      ],
+      "id": "47f8acbd-6e4e-4702-a0dd-a078768431ae"
+    },
+    {
+      "parameters": {
+        "command": "echo '🎯 === CORTES INTELLIGENCE ENGINE - PRODUCTION COMPLETE ===' && echo '' && echo '📊 CORTES ANALYSIS SUMMARY:' && echo '   Project: {{ $json.metadata.projectName }}' && echo '   Repository: https://github.com/MoLinesGitHub/Cortes' && echo '   Monetization Readiness: {{ $json.cortes_business_intelligence.monetization_readiness }}' && echo '   iOS Optimization Score: {{ $json.cortes_performance_intelligence.ios_optimization_score }}%' && echo '   Files Detected: {{ $json.cortes_project_intelligence.file_metrics.total_files }}' && echo '   Swift Files: {{ $json.cortes_project_intelligence.file_metrics.swift_files }}' && echo '   Test Files: {{ $json.cortes_testing_intelligence.test_metrics.total_test_files }}' && echo '   App Store Ready: {{ $json.cortes_performance_intelligence.app_store_readiness }}' && echo '' && echo '📂 Current timestamped files (format: dd-MM-YYYY_HH:MM:SS):' && ls -la /data/cortes/cortes-context/*_$(date +'%d-%m-%Y')_*.json 2>/dev/null || echo 'Current files being created...' && echo '' && echo '📂 Historical management active:' && echo '   - Automatic historic folder creation: \"Historico del Día dd-MM-YYYY\"' && echo '   - Only latest version kept in main folder' && echo '   - Auto-cleanup: Historic folders >30 days deleted' && echo '' && echo '📦 Preparing final export to Mac...' && echo '' && CONTAINER_ID=$(hostname) && echo \"🚀 COPY COMMAND FOR YOUR MAC:\" && echo \"docker cp \\$CONTAINER_ID:/data/cortes/cortes-context/ /Users/molinesmac/Documents/Cortes/\" && echo '' && echo '💡 All files (current + historic folders) will be copied!' && echo '' && echo '🐙 GitHub Repository: https://github.com/MoLinesGitHub/Cortes' && echo '🔑 Token configured for automated workflows' && echo '' && echo '✅ Scheduled analysis every 10 minutes with intelligent historical management!'"
+      },
+      "name": "Final Export Instructions",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1620,
+        -640
+      ],
+      "id": "f1be3c80-ed2c-41ea-bf7a-28f4704010fa"
+    }
+  ],
+  "connections": {
+    "Every 10 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Configure Cortes Project Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure Cortes Project Paths": {
+      "main": [
+        [
+          {
+            "node": "Ensure Context Directory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Context Directory": {
+      "main": [
+        [
+          {
+            "node": "Scan Cortes Files",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Analyze Git History",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Analyze Git Stats",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Analyze Test Coverage",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Analyze Assets Performance",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Analyze Swift Dependencies",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Analyze Swift Package Lock",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Analyze NPM Dependencies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scan Cortes Files": {
+      "main": [
+        [
+          {
+            "node": "Analyze Cortes Project Structure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Git History": {
+      "main": [
+        [
+          {
+            "node": "Analyze Cortes Git Intelligence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Test Coverage": {
+      "main": [
+        [
+          {
+            "node": "Analyze Cortes Testing Intelligence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Assets Performance": {
+      "main": [
+        [
+          {
+            "node": "Analyze Cortes Performance Intelligence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Swift Dependencies": {
+      "main": [
+        [
+          {
+            "node": "Analyze Cortes Dependencies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Cortes Project Structure": {
+      "main": [
+        [
+          {
+            "node": "Create Ultimate Cortes Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Ultimate Cortes Context": {
+      "main": [
+        [
+          {
+            "node": "Save Ultimate Context",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save Claude Context",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save Executive Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Ultimate Context": {
+      "main": [
+        [
+          {
+            "node": "Manage Historical Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Claude Context": {
+      "main": [
+        [
+          {
+            "node": "Manage Historical Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Executive Dashboard": {
+      "main": [
+        [
+          {
+            "node": "Manage Historical Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manage Historical Files": {
+      "main": [
+        [
+          {
+            "node": "Final Export Instructions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Git Stats": {
+      "main": [
+        [
+          {
+            "node": "Analyze Cortes Git Intelligence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Swift Package Lock": {
+      "main": [
+        [
+          {
+            "node": "Analyze Cortes Dependencies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze NPM Dependencies": {
+      "main": [
+        [
+          {
+            "node": "Analyze Cortes Dependencies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Cortes Git Intelligence": {
+      "main": [
+        [
+          {
+            "node": "Create Ultimate Cortes Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Cortes Testing Intelligence": {
+      "main": [
+        [
+          {
+            "node": "Create Ultimate Cortes Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Cortes Performance Intelligence": {
+      "main": [
+        [
+          {
+            "node": "Create Ultimate Cortes Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Cortes Dependencies": {
+      "main": [
+        [
+          {
+            "node": "Create Ultimate Cortes Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "9801897e-9709-4797-ad08-ae179a1462e5",
+  "triggerCount": 1,
+  "tags": []
+}
